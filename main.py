@@ -52,7 +52,7 @@ class ComprobarRegistroVentas:
         # Variable para almacenar estado de archivo seleccionado
         self.estaSeleccionadoReporte = StringVar()
         self.estaSeleccionadoReporte.set("")
-        self.lblCargadosReporte = ttk.Label(mainframe, textvariable=self.estaSeleccionadoReporte, wraplength=100)
+        self.lblCargadosReporte = ttk.Label(mainframe, textvariable=self.estaSeleccionadoReporte, wraplength=125)
         
         # Vincular función para verificar cambios
         self.estaSeleccionadoReporte.trace_add("write", self.escuchar_cambios_seleccionado)
@@ -82,6 +82,7 @@ class ComprobarRegistroVentas:
         self.label_progreso.grid(column=1, row=5, sticky="ns")
         
         self.nroCoincidencias = StringVar()
+        self.nroCoincidencias.set('0/0 Coincidencias')
         self.lblCoincidencias = ttk.Label(mainframe, textvariable=self.nroCoincidencias)
         self.lblCoincidencias.grid(column=1, row=6)
         
@@ -146,8 +147,17 @@ class ComprobarRegistroVentas:
             
             print("Archivos seleccionados:", self.archivoRV)
             
+            
+            # Extraer nombre del archivo Registro Ventas para conseguir fecha y mes
+            archivoRV = Path(self.archivoRV)
+            archivoRV = archivoRV.stem
+            archivoRV = archivoRV[13:]
+            self.fecha = archivoRV[:6]
+            self.anio = self.fecha[:4]
+            self.mes = self.fecha[4:]
+            
             # Cambiar el valor de la etiqueta a 'estaSeleccionado'
-            self.estaSeleccionadoRV.set("Archivo Seleccionado")
+            self.estaSeleccionadoRV.set(f"Mes: {self.mes} - Año: {self.anio}")
         
         else:
             self.estaSeleccionadoRV.set("No se seleccionó archivo")
@@ -157,6 +167,7 @@ class ComprobarRegistroVentas:
     def seleccionarArchivoReporte(self):
         # Abrir ventana emergente para seleccionar los archivos excel a subir
         self.archivoReporte = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx")])
+        archivoReporte = Path(self.archivoReporte)
         
         # Comprobar si se han seleccionado archivos
         if self.archivoReporte:
@@ -166,7 +177,7 @@ class ComprobarRegistroVentas:
             print("Archivos seleccionados:", self.archivoReporte)
             
             # Cambiar el valor de la etiqueta a 'estaSeleccionado'
-            self.estaSeleccionadoReporte.set("Archivo Seleccionado")
+            self.estaSeleccionadoReporte.set(f"Archivo Seleccionado: {archivoReporte.stem} ")
         
         else:
             self.estaSeleccionadoReporte.set("No se seleccionó archivo")
@@ -191,6 +202,15 @@ class ComprobarRegistroVentas:
         numero_str = numero_str.replace('.0', '')
         
         if numero_str == '':
+            numero_str = '0'
+            
+        if numero_str == '10000000000000':
+            numero_str = '0'
+        
+        if numero_str == None:
+            numero_str = '0'
+            
+        if numero_str == '-':
             numero_str = '0'
         
         if numero_str.endswith('.'):
@@ -230,14 +250,7 @@ class ComprobarRegistroVentas:
         self.dataReporte.clear()
         self.dataRV.clear()
         self.reiniciar_progresoGeneral()
-
-        # Extraer nombre del archivo Registro Ventas para conseguir fecha y mes
-        archivoRV = Path(self.archivoRV)
-        archivoRV = archivoRV.stem
-        archivoRV = archivoRV[13:]
-        self.fecha = archivoRV[:6]
-        self.anio = self.fecha[:4]
-        self.mes = self.fecha[4:]
+        self.nroCoincidencias.set(f"0/0 Coincidencias")
         
         # Ejecutar la carga de data en un hilo separado
         threading.Thread(target=self.cargar_data).start()
@@ -281,10 +294,11 @@ class ComprobarRegistroVentas:
             caseta = boleta[:3]
             numero = boleta[3:]
             boleta13 = f'{caseta}{int(numero):010d}'
+            ruc = self.limpiar_numero(row['RUC'])
             if fecha.month == int(mes) and fecha.year == int(anio):
                 key = (fecha, i)
                 fecha = self.convertirDatetimeString(fecha)
-                self.dataReporte[key] = {'fecha': fecha, 'ruc': row['RUC'], 'monto': tarifa, 'boleta': boleta13, 'ticketera': row['Ticketera']}
+                self.dataReporte[key] = {'fecha': fecha, 'ruc': ruc, 'monto': tarifa, 'boleta': boleta13, 'ticketera': row['Ticketera']}
                 
     def leer_txt(self, ruta_archivo):
         i = 0
@@ -344,20 +358,24 @@ class ComprobarRegistroVentas:
                     print(f"Coincidencia: {data_dataReporte}")
                     lista_coincidencias.append(key_reporte)
         
-        for key in list(dataReporte.keys()):
-            if key in lista_coincidencias:
-                del dataReporte[key]
-        
-        print("\n")
-        print(f"No se encontraron coincidencias de: ")
-        for key, data_key in dataReporte.items():
-            print(f"FECHA: {data_key['fecha']}")
-            print(f"RUC: {data_key['ruc']}")
-            print(f"MONTO: {data_key['monto']}")
-            print(f"BOLETA: {data_key['boleta']}")
-            print(f"TICKETERA: {data_key['ticketera']}")
+        if len(lista_coincidencias) != len(dataReporte):
+            for key in list(dataReporte.keys()):
+                if key in lista_coincidencias:
+                    del dataReporte[key]
+            
+            
             print("\n")
-                    
+            print(f"No se encontraron coincidencias de: ")
+            for key, data_key in dataReporte.items():
+                print(f"FECHA: {data_key['fecha']}")
+                print(f"RUC: {data_key['ruc']}")
+                print(f"MONTO: {data_key['monto']}")
+                print(f"BOLETA: {data_key['boleta']}")
+                print(f"TICKETERA: {data_key['ticketera']}")
+                print("\n")
+        else:
+            print("\n")
+            print("Todas coinciden!")
                     
 # Iniciar programa                
                 
