@@ -192,9 +192,12 @@ class ComprobarRegistroVentas:
         
     def convertirStringDatetime(self, fecha):
         if fecha != "0":
-            fecha_formateada = datetime.strptime(fecha,"%d/%m/%Y")
-            return fecha_formateada
-        
+            if isinstance(fecha, datetime):
+                return fecha
+            else:
+                fecha_formateada = datetime.strptime(fecha,"%d/%m/%Y")
+                return fecha_formateada
+            
     def limpiar_numero(self, numero):
         # Convierte el número a cadena
         numero_str = str(numero)
