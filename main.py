@@ -286,7 +286,7 @@ class ComprobarRegistroVentas:
             if 'BOLETAS' in hoja.upper():
                 # Leer la hoja que contiene 'Boletas' y columnas A:O
                 df = pd.read_excel(xls, sheet_name=hoja, usecols="A:O")
-                dfFiltrado = df[['Fecha', 'RUC', 'Tarifa', 'Boletas', 'Ticketera']]
+                dfFiltrado = df[['Fecha', 'RUC', 'Tarifa', 'Boletas', 'Ticketera', 'Placa']]
                 
         i = 0
         for _, row in dfFiltrado.iterrows():
@@ -298,10 +298,11 @@ class ComprobarRegistroVentas:
             numero = boleta[3:]
             boleta13 = f'{caseta}{int(numero):010d}'
             ruc = self.limpiar_numero(row['RUC'])
+            placa = row['Placa']
             if fecha.month == int(mes) and fecha.year == int(anio):
                 key = (fecha, i)
                 fecha = self.convertirDatetimeString(fecha)
-                self.dataReporte[key] = {'fecha': fecha, 'ruc': ruc, 'monto': tarifa, 'boleta': boleta13, 'ticketera': row['Ticketera']}
+                self.dataReporte[key] = {'fecha': fecha, 'ruc': ruc, 'monto': tarifa, 'boleta': boleta13, 'ticketera': row['Ticketera'], 'placa': placa}
                 
     def leer_txt(self, ruta_archivo):
         i = 0
@@ -375,7 +376,10 @@ class ComprobarRegistroVentas:
                 print(f"MONTO: {data_key['monto']}")
                 print(f"BOLETA: {data_key['boleta']}")
                 print(f"TICKETERA: {data_key['ticketera']}")
+                print(f"PLACA: {data_key['placa']}")
                 print("\n")
+                
+            print("Finalizado")
         else:
             print("\n")
             print("Todas coinciden!")
