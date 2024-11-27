@@ -2,3 +2,6 @@
 *.zip
 mi_entorno
 !requirements.txt
+dist
+.venv
+build
