@@ -5,3 +5,5 @@ mi_entorno
 dist
 .venv
 build
+.env
+__pycache__

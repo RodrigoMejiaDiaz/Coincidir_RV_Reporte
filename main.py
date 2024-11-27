@@ -407,8 +407,3 @@ class ComprobarRegistroVentas:
             print("\n")
             print("Todas coinciden!")
                     
-# Iniciar programa                
-                
-root = Tk()
-ComprobarRegistroVentas(root)
-root.mainloop()
