@@ -6,6 +6,8 @@ import threading
 from pathlib import Path
 import pandas as pd
 from datetime import datetime
+import io
+import os
 
 class ComprobarRegistroVentas:
     def __init__(self, root):
@@ -393,15 +395,35 @@ class ComprobarRegistroVentas:
             
             print("\n")
             print(f"No se encontraron coincidencias de: ")
-            for key, data_key in dataReporte.items():
-                print(f"FECHA: {data_key['fecha']}")
-                print(f"RUC: {data_key['ruc']}")
-                print(f"MONTO: {data_key['monto']}")
-                print(f"BOLETA: {data_key['boleta']}")
-                print(f"TICKETERA: {data_key['ticketera']}")
-                print(f"PLACA: {data_key['placa']}")
-                print("\n")
+            
+            # Crear la carpeta "Reportes" si no existe
+            folder_path = f"./Faltantes/"
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
                 
+            file_path = os.path.join(folder_path, "faltantes.txt")
+                
+            file = io.open(file_path, "w", encoding="utf-8", buffering=1028)
+            
+            try:
+                encabezados = ["FECHA", "RUC", "MONTO", "BOLETA", "TICKETERA", "PLACA"]
+                encabezados_linea = "|".join(encabezados) + "|" + "\n"
+                file.write(encabezados_linea)
+                
+                for key, data_key in dataReporte.items():
+                    row_linea = "|".join(str(val) if val is not None else "" for val_key, val in data_key.items()) +"|" + "\n"
+                    file.write(row_linea)
+                
+                print(f"Archivo faltantes generado en: {file_path}")
+                
+            except Exception as e: 
+                print("Error al generar archivo faltantes")
+                print(e)
+            finally:
+                file.close()
+            
+            print("\n")
+                    
             print("Finalizado")
         else:
             print("\n")
