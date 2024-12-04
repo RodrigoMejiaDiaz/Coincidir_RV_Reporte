@@ -357,7 +357,7 @@ class ComprobarRegistroVentas:
                 self.dataRV[key] = {'fecha': fecha, 'ruc': ruc, 'monto': monto, 'boleta': boleta, 'ticketera': ticketera}
             
             except Exception as e:
-                print(f"Error en la línea: {i}")
+                print(f"Error en la línea: {i}... Saltando a la siguiente línea")
                 print(line)
                 print(e)
                 continue
