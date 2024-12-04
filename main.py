@@ -310,50 +310,57 @@ class ComprobarRegistroVentas:
         i = 0
         f = codecs.open(ruta_archivo, "r", "ISO-8859-1")
         for line in f:
-            i += 1
-            # separate line into fields
-            fields = line.split("|")
-            
-            # En caso RV sea 2013
-            if str(self.anio) == '2013':
-                fecha = self.convertirStringDatetime(fields[2])
-                ticketera = fields[5]
-                if len(ticketera) < 10:
-                    continue # Saltar siguiente iteracion
-                else:
-                    boleta = fields[6]
-                    
-                    b = boleta.split("-")
-                    
-                    # Quitar cero inicial si la caseta de la boleta empieza con 0
-                    if len(b[0]) > 3:
-                        b[0] = b[0][1:]
-                    
-                    boleta = f"{b[0]}{int(b[1]):010d}"
-                    
-                    ruc = self.limpiar_numero(fields[9])
+            try:
+                i += 1
+                # separate line into fields
+                fields = line.split("|")
+                
+                # En caso RV sea 2013
+                if str(self.anio) == '2013':
+                    fecha = self.convertirStringDatetime(fields[2])
+                    ticketera = fields[5]
+                    if len(ticketera) < 10:
+                        continue # Saltar siguiente iteracion
+                    else:
+                        boleta = fields[6]
+                        
+                        b = boleta.split("-")
+                        
+                        # Quitar cero inicial si la caseta de la boleta empieza con 0
+                        if len(b[0]) > 3:
+                            b[0] = b[0][1:]
+                        
+                        boleta = f"{b[0]}{int(b[1]):010d}"
+                        
+                        ruc = self.limpiar_numero(fields[9])
 
-                    monto = fields[20]
+                        monto = fields[20]
+                
+                else:
+                
+                    fecha = self.convertirStringDatetime(fields[3])
+                    ticketera = fields[6]
+                    boleta = fields[7]
+                    
+                    if len(boleta) > 13:
+                        boleta = boleta[1:]
+                    
+                    ruc = self.limpiar_numero(fields[10])
+                    
+                    
+                    monto = fields[23]
+                    
+                key = (fecha, i)
+                    
+                fecha = self.convertirDatetimeString(fecha)
+                
+                self.dataRV[key] = {'fecha': fecha, 'ruc': ruc, 'monto': monto, 'boleta': boleta, 'ticketera': ticketera}
             
-            else:
-            
-                fecha = self.convertirStringDatetime(fields[3])
-                ticketera = fields[6]
-                boleta = fields[7]
-                
-                if len(boleta) > 13:
-                    boleta = boleta[1:]
-                
-                ruc = self.limpiar_numero(fields[10])
-                
-                
-                monto = fields[23]
-                
-            key = (fecha, i)
-                
-            fecha = self.convertirDatetimeString(fecha)
-            
-            self.dataRV[key] = {'fecha': fecha, 'ruc': ruc, 'monto': monto, 'boleta': boleta, 'ticketera': ticketera}
+            except Exception as e:
+                print(f"Error en la línea: {i}")
+                print(line)
+                print(e)
+                continue
             
             
     def coincidir_datas(self, dataRV, dataReporte):
